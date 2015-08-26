@@ -5,7 +5,6 @@ from pygame.locals import *
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     try:
-        print fullname
         image = pygame.image.load(fullname)
     except pygame.error, message:
         print 'Cannot load image:', name
@@ -15,5 +14,4 @@ def load_image(name, colorkey=None):
         if colorkey is -1:
             colorkey = image.get_at((0,0))
         image.set_colorkey(colorkey, RLEACCEL)
-    print 'loaded'
     return image, image.get_rect()
