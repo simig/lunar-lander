@@ -23,15 +23,6 @@ MAX_HEIGHT = 10.
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
 
-def rot_center(image, angle):
-    """rotate an image while keeping its center and size"""
-    orig_rect = image.get_rect()
-    rot_image = pygame.transform.rotate(image, angle)
-    rot_rect = orig_rect.copy()
-    rot_rect.center = rot_image.get_rect().center
-    rot_image = rot_image.subsurface(rot_rect).copy()
-    return rot_image
-
 class PyManMain:
     """The Main PyMan Class - This class handles the main
     initialization and creating of the Game."""
@@ -61,7 +52,8 @@ class PyManMain:
                 if event.type == pygame.QUIT:
                     sys.exit()
                 if event.type == KEYDOWN:
-		    print event.key
+		    if (event.key == 113):
+			sys.exit()
 		    if (event.key == 114 and self.rocket.landed):
 			self.LoadSprites()
 			continue
