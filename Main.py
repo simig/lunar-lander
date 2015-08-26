@@ -2,6 +2,7 @@ import sys
 sys.path.insert(1, "C:\Users\khunyingimig\Downloads\Lib\site-packages")
 import pygame
 import math
+import string
 
 from pygame.locals import *
 
@@ -17,12 +18,12 @@ import time
 ACCELERATION_DUE_TO_THRUST = -3.07
 ACCELERATION_DUE_TO_GRAVITY = 0.35
 INITIAL_VERTICAL_SPEED = 3
-HORIZONTAL_SPEED_MULTIPLIER = 0.001
+HORIZONTAL_SPEED_MULTIPLIER = 0.0001
 
 INITIAL_SCREEN_WIDTH = 1024
 INITIAL_SCREEN_HEIGHT = int(1024 / 1.62) # Golden mean
 
-INITIAL_FUEL = 100
+INITIAL_FUEL = 1000
 
 MAX_HEIGHT = 10.
 
@@ -100,7 +101,7 @@ class PyManMain:
             textpos.topleft = self.screen.get_rect().topleft
             self.screen.blit(text, textpos)
 
-            text = font.render("Height: " + str(self.rocket.height), 1, (0, 255, 128))
+            text = font.render("Height: " + "{:.2f}".format(self.rocket.height), 1, (0, 255, 128))
             textpos.topleft = self.screen.get_rect().topleft
             textpos.top += 20
             self.screen.blit(text, textpos)
