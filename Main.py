@@ -10,9 +10,9 @@ from pygame.locals import *
 from util import *
 import time
 
-ACCELERATION_DUE_TO_THRUST = -6.14
-ACCELERATION_DUE_TO_GRAVITY = 0.3
-INITIAL_VERTICAL_SPEED = 1
+ACCELERATION_DUE_TO_THRUST = -3.07
+ACCELERATION_DUE_TO_GRAVITY = 0.35
+INITIAL_VERTICAL_SPEED = 3
 HORIZONTAL_SPEED_MULTIPLIER = 1.
 
 INITIAL_SCREEN_WIDTH = 1024
@@ -96,7 +96,7 @@ class Rocket(pygame.sprite.Sprite):
     def __init__(self, ground = 462, height_ratio=1):
         pygame.sprite.Sprite.__init__(self)
         self.height_ratio = height_ratio
-        self.image, self.rect = load_image('rocketup.jpg',-1)
+        self.image, self.rect = load_image('rocketup.png',-1)
         #width_ratio = 40. / self.image.get_width()
         #self.image = pygame.transform.scale(self.image, \
         #    (int(width_ratio * self.image.get_width()),  \
@@ -127,14 +127,14 @@ class Rocket(pygame.sprite.Sprite):
         self.time = curr_time
         self.height -= self.speed * seconds_elapsed
         self.speed += self.accel * seconds_elapsed
-	
+
 	if self.rotation == -90:
-		self.image = load_image('rocketleft.jpg', -1)[0]
+		self.image = load_image('rocketleft.png', -1)[0]
 
 	elif self.rotation == 0:
-		self.image = load_image('rocketup.jpg', -1)[0]
+		self.image = load_image('rocketup.png', -1)[0]
 	elif self.rotation == 90:
-		self.image = load_image('rocketright.jpg', -1)[0]
+		self.image = load_image('rocketright.png', -1)[0]
         self.rect.move_ip(0, int(self.speed * seconds_elapsed / self.height_ratio))
         self.rect.move_ip(int(self.xspeed * seconds_elapsed / self.height_ratio), 0)
 
