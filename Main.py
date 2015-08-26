@@ -13,7 +13,10 @@ import time
 ACCELERATION_DUE_TO_THRUST = -6.14
 ACCELERATION_DUE_TO_GRAVITY = 0.3
 INITIAL_VERTICAL_SPEED = 1
-HORIZONTAL_SPEED_MULTIPLIER = 10.
+HORIZONTAL_SPEED_MULTIPLIER = 1.
+
+INITIAL_SCREEN_WIDTH = 1024
+INITIAL_SCREEN_HEIGHT = int(1024 / 1.62) # Golden mean
 
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
@@ -31,7 +34,7 @@ class PyManMain:
     """The Main PyMan Class - This class handles the main
     initialization and creating of the Game."""
 
-    def __init__(self, width=640,height=480):
+    def __init__(self, width=INITIAL_SCREEN_WIDTH,height=INITIAL_SCREEN_HEIGHT):
         """Initialize"""
         """Initialize PyGame"""
         pygame.init()
@@ -43,7 +46,9 @@ class PyManMain:
         """Create the Screen"""
         self.screen = pygame.display.set_mode((self.width
                                                , self.height))
-        pygame.draw.line(self.screen, (0, 100,100), (0,400), (640, 400), 4)
+	self.ground = self.height - 20
+        pygame.draw.line(self.screen, (0, 100,100), (0, self.ground), (height, self.ground), 4)
+
     def MainLoop(self):
         """Load All of our Sprites"""
         self.LoadSprites();
@@ -55,22 +60,20 @@ class PyManMain:
                     sys.exit()
                 if event.type == KEYDOWN:
                     if (event.key == K_UP):
-                        self.rocket.accel = ACCELERATION_DUE_TO_THRUST
+                        if self.rocket.xaccel == 0:
+				self.rocket.accel = ACCELERATION_DUE_TO_THRUST
                         self.rocket.xspeed += self.rocket.xaccel * HORIZONTAL_SPEED_MULTIPLIER
                         print "xspeed", self.rocket.xspeed
                     if (event.key == K_DOWN):
                         self.rocket.accel = ACCELERATION_DUE_TO_GRAVITY
                     if (event.key == K_LEFT):
-                        self.rocket.image = rot_center(self.rocket.image, 5)
-                        self.rocket.rotation = self.rocket.rotation - 5
-                        self.rocket.xaccel = math.sin(-self.rocket.rotation * math.pi / 180.)
-                        print self.rocket.rotation, self.rocket.xaccel
+			if self.rocket.rotation > -90:
+				self.rocket.rotation -= 90
+				self.rocket.xaccel -= 1
                     if (event.key == K_RIGHT):
-                        self.rocket.image = rot_center(self.rocket.image, -5)
-                        self.rocket.rotation = self.rocket.rotation + 5
-                        self.rocket.xaccel = math.sin(-self.rocket.rotation * math.pi / 180.)
-                        print self.rocket.rotation, self.rocket.xaccel
-
+                        if self.rocket.rotation < 90:
+				self.rocket.rotation += 90
+                        	self.rocket.xaccel += 1
                 if event.type == KEYUP:
                     self.rocket.accel = ACCELERATION_DUE_TO_GRAVITY
 
@@ -79,39 +82,41 @@ class PyManMain:
             self.screen.fill(BLACK)
             self.rocket_sprites.draw(self.screen)
             pygame.draw.line(self.screen, (0, 100,100), \
-                (0, int(7.5/self.height_ratio)), (640, int(7.5/self.height_ratio)), 4)
+                (0, self.height - 40), (self.width, self.height - 40), 4)
             pygame.display.flip()
 
     def LoadSprites(self):
         """Load the sprites that we need"""
-        self.rocket = Rocket()
+        self.rocket = Rocket(self.ground, self.height_ratio)
         self.rocket_sprites = pygame.sprite.RenderPlain((self.rocket))
 
 class Rocket(pygame.sprite.Sprite):
     """This is our rocket that will move around the screen"""
 
-    def __init__(self, height_ratio=0.020833):
+    def __init__(self, ground = 462, height_ratio=1):
         pygame.sprite.Sprite.__init__(self)
         self.height_ratio = height_ratio
         self.image, self.rect = load_image('rocketup.jpg',-1)
-        width_ratio = 40. / self.image.get_width()
-        self.image = pygame.transform.scale(self.image, \
-            (int(width_ratio * self.image.get_width()),  \
-             int(width_ratio * self.image.get_height())))
+        #width_ratio = 40. / self.image.get_width()
+        #self.image = pygame.transform.scale(self.image, \
+        #    (int(width_ratio * self.image.get_width()),  \
+        #     int(width_ratio * self.image.get_height())))
         self.rect = self.image.get_rect()
         self.rect.move_ip(300, int(2./self.height_ratio));
-        self.height = 10.
+        self.height = 10
         self.time = time.time()
         self.speed = INITIAL_VERTICAL_SPEED
         self.accel = ACCELERATION_DUE_TO_GRAVITY
         self.rotation = 0
         self.xaccel = 0
         self.xspeed = 0
+	self.ground = ground
         print self.rect
         print self.height_ratio
+
     def fall(self):
         # print self.rect.bottom, 7.5/self.height_ratio
-        if self.rect.bottom > 7.5/self.height_ratio:
+        if self.rect.bottom > self.ground:
             if self.speed < 3:
                 self.image.fill((0,200,0))
             else:
@@ -122,8 +127,16 @@ class Rocket(pygame.sprite.Sprite):
         self.time = curr_time
         self.height -= self.speed * seconds_elapsed
         self.speed += self.accel * seconds_elapsed
+	
+	if self.rotation == -90:
+		self.image = load_image('rocketleft.jpg', -1)[0]
+
+	elif self.rotation == 0:
+		self.image = load_image('rocketup.jpg', -1)[0]
+	elif self.rotation == 90:
+		self.image = load_image('rocketright.jpg', -1)[0]
         self.rect.move_ip(0, int(self.speed * seconds_elapsed / self.height_ratio))
-        self.rect.move_ip(int(self.xspeed * seconds_elapsed), 0)
+        self.rect.move_ip(int(self.xspeed * seconds_elapsed / self.height_ratio), 0)
 
 if __name__ == "__main__":
     print os.getcwd()
