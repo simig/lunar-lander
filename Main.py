@@ -10,6 +10,10 @@ from pygame.locals import *
 from util import *
 import time
 
+pygame.mixer.init()
+pygame.mixer.music.load("data\music.mp3")
+pygame.mixer.music.play()
+
 ACCELERATION_DUE_TO_THRUST = -3.07
 ACCELERATION_DUE_TO_GRAVITY = 0.35
 INITIAL_VERTICAL_SPEED = 3
