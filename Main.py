@@ -50,51 +50,56 @@ class PyManMain:
         self.LoadSprites();
         """This is the Main Loop of the Game"""
         while 1:
-            for event in pygame.event.get():
-
-                if event.type == pygame.QUIT:
-                    sys.exit()
-                if event.type == KEYDOWN:
-		    if (event.key == 113):
-			sys.exit()
-		    if (event.key == 114 and self.rocket.landed):
-			self.LoadSprites()
-			continue
-                    if (event.key == K_UP):
+		keys = pygame.key.get_pressed()
+		
+		if (keys[113]):
+                	sys.exit()
+		if (keys[114] and self.rocket.landed):
+                	self.LoadSprites()
+                	continue
+		if (keys[K_UP] and self.rocket.fuel > 0):
                         self.rocket.fuel -= 1
-			if self.rocket.fuel < 0:
-				self.rocket.fuel = 0
-			if self.rocket.xaccel == 0:
-				self.rocket.accel = ACCELERATION_DUE_TO_THRUST
-                        self.rocket.xspeed += self.rocket.xaccel * HORIZONTAL_SPEED_MULTIPLIER
-                        print "xspeed", self.rocket.xspeed
-                    if (event.key == K_DOWN):
+                        if self.rocket.fuel < 0:
+                                self.rocket.fuel = 0
+                        else:
+                                if self.rocket.xaccel == 0:
+                                        self.rocket.accel = ACCELERATION_DUE_TO_THRUST
+                                self.rocket.xspeed += self.rocket.xaccel * HORIZONTAL_SPEED_MULTIPLIER
+                if (keys[K_DOWN]):
                         self.rocket.accel = ACCELERATION_DUE_TO_GRAVITY
-                    if (event.key == K_LEFT):
-			if self.rocket.rotation > -90:
-				self.rocket.rotation -= 90
-				self.rocket.xaccel -= 1
-                    if (event.key == K_RIGHT):
+                if (keys[K_LEFT]):
+                        if self.rocket.rotation > -90:
+                                self.rocket.rotation -= 90
+                                self.rocket.xaccel -= 1
+                if (keys[K_RIGHT]):
                         if self.rocket.rotation < 90:
-				self.rocket.rotation += 90
-                        	self.rocket.xaccel += 1
-                if event.type == KEYUP:
-                    self.rocket.accel = ACCELERATION_DUE_TO_GRAVITY
+                                self.rocket.rotation += 90
+                                self.rocket.xaccel += 1
 
-            self.rocket.fall()
-            COLOR = (25,120,120)
-            self.screen.fill(COLOR)
-            self.rocket_sprites.draw(self.screen)
-            pygame.draw.line(self.screen, (0, 100,100), \
-                (0, self.ground), (self.width, self.ground), 4)
+	       	for event in pygame.event.get(): 
+			if event.type == pygame.QUIT:
+                    		sys.exit()
 
-	    font = pygame.font.Font(None, 36)
-            text = font.render("Fuel: " + str(self.rocket.fuel), 1, (0, 255, 128))
-            textpos = text.get_rect()
-            textpos.topleft = self.screen.get_rect().topleft
-            self.screen.blit(text, textpos)
+		self.rocket.fall()
+            	COLOR = (25,120,120)
+            	self.screen.fill(COLOR)
+            	self.rocket_sprites.draw(self.screen)
+            	pygame.draw.line(self.screen, (0, 100,100), \
+                	(0, self.ground), (self.width, self.ground), 4)
 
-            pygame.display.flip()
+	    	font = pygame.font.Font(None, 36)
+            	text = font.render("Fuel: " + str(self.rocket.fuel), 1, (0, 255, 128))
+
+           	textpos = text.get_rect()
+            	textpos.topleft = self.screen.get_rect().topleft
+            	self.screen.blit(text, textpos)
+		
+		text = font.render("Height: " + str(self.rocket.height), 1, (0, 255, 128))
+		textpos.topleft = self.screen.get_rect().topleft
+		textpos.top += 20
+		self.screen.blit(text, textpos)
+
+            	pygame.display.flip()
 
     def LoadSprites(self):
         """Load the sprites that we need"""
@@ -122,8 +127,6 @@ class Rocket(pygame.sprite.Sprite):
         self.xaccel = 0
         self.xspeed = 0
 	self.ground = ground
-        print self.rect
-        print self.height_ratio
 	self.landed = False
 	self.fuel = INITIAL_FUEL
 
@@ -143,7 +146,9 @@ class Rocket(pygame.sprite.Sprite):
         self.time = curr_time
         self.height -= self.speed * seconds_elapsed
 	if self.height > MAX_HEIGHT:
-		self.height = MAX_HEIGHT
+		self.height = MAX_HEIGHT -1
+		self.speed = 0
+		self.accel = ACCELERATION_DUE_TO_GRAVITY 
         self.speed += self.accel * seconds_elapsed
 
 	if self.rotation == -90:
