@@ -18,6 +18,8 @@ HORIZONTAL_SPEED_MULTIPLIER = 1.
 INITIAL_SCREEN_WIDTH = 1024
 INITIAL_SCREEN_HEIGHT = int(1024 / 1.62) # Golden mean
 
+INITIAL_FUEL = 10
+
 MAX_HEIGHT = 10.
 
 if not pygame.font: print 'Warning, fonts disabled'
@@ -39,8 +41,9 @@ class PyManMain:
         """Create the Screen"""
         self.screen = pygame.display.set_mode((self.width
                                                , self.height))
+	
+
 	self.ground = self.height - 20
-        pygame.draw.line(self.screen, (0, 100,100), (0, self.ground), (height, self.ground), 4)
 
     def MainLoop(self):
         """Load All of our Sprites"""
@@ -58,7 +61,10 @@ class PyManMain:
 			self.LoadSprites()
 			continue
                     if (event.key == K_UP):
-                        if self.rocket.xaccel == 0:
+                        self.rocket.fuel -= 1
+			if self.rocket.fuel < 0:
+				self.rocket.fuel = 0
+			if self.rocket.xaccel == 0:
 				self.rocket.accel = ACCELERATION_DUE_TO_THRUST
                         self.rocket.xspeed += self.rocket.xaccel * HORIZONTAL_SPEED_MULTIPLIER
                         print "xspeed", self.rocket.xspeed
@@ -76,11 +82,18 @@ class PyManMain:
                     self.rocket.accel = ACCELERATION_DUE_TO_GRAVITY
 
             self.rocket.fall()
-            BLACK = (0,0,0)
-            self.screen.fill(BLACK)
+            COLOR = (25,120,120)
+            self.screen.fill(COLOR)
             self.rocket_sprites.draw(self.screen)
             pygame.draw.line(self.screen, (0, 100,100), \
-                (0, self.height - 40), (self.width, self.height - 40), 4)
+                (0, self.ground), (self.width, self.ground), 4)
+
+	    font = pygame.font.Font(None, 36)
+            text = font.render("Fuel: " + str(self.rocket.fuel), 1, (0, 255, 128))
+            textpos = text.get_rect()
+            textpos.topleft = self.screen.get_rect().topleft
+            self.screen.blit(text, textpos)
+
             pygame.display.flip()
 
     def LoadSprites(self):
@@ -112,6 +125,7 @@ class Rocket(pygame.sprite.Sprite):
         print self.rect
         print self.height_ratio
 	self.landed = False
+	self.fuel = INITIAL_FUEL
 
     def fall(self):
         # print self.rect.bottom, 7.5/self.height_ratio
