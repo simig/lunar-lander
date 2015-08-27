@@ -54,9 +54,9 @@ class PyManMain:
                                                , self.height))
 
 #BEGINNER
-        #self.ground = [(100, 200, 30), (540, 640, 90), (700, 850, 40), (900,1000, 20)]
+        self.ground = [(100, 200, 30), (540, 640, 90), (700, 850, 40), (900,1000, 20)]
         #self.ground = [(100, 200, 180), (540, 640, 0), (700, 850, 120), (900,1000, 100)]
-        self.ground =[(200, 200, 550), (400, 480, 20), (900, 900, 550)]
+        #self.ground =[(200, 200, 550), (400, 480, 20), (900, 900, 550)]
     def MainLoop(self):
         """Load All of our Sprites"""
         self.LoadSprites();
@@ -122,7 +122,7 @@ class PyManMain:
             cyan = (0, 100, 100)
             cyan2 = (0, cyan_landing_value, cyan_landing_value)
             
-		for t in self.ground:
+	    for t in self.ground:
                 pygame.draw.line(self.screen, cyan, \
                     curr, (t[0], self.height - t[2]), 4)
                 pygame.draw.line(self.screen, cyan2, \
@@ -212,7 +212,7 @@ class Rocket(pygame.sprite.Sprite):
                     and self.point_below_line(x1, y1, t[0], t[2], t[1], t[2]):
 
                     if self.speed < 3 and self.rotation == 0:
-                        self.image.fill((0,200,0))
+                        self.image = load_image('rocketlanded.png', -1)[0]
                         self.landed = True
                     else:
                         self.image = load_image('Crashed.png', -1)[0]
