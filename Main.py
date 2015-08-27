@@ -21,12 +21,12 @@ ACCELERATION_DUE_TO_THRUST = -3.07
 ACCELERATION_DUE_TO_GRAVITY = 1.6
 INITIAL_VERTICAL_SPEED = 3
 INITIAL_HORIZONTAL_SPEED = 0.1
-HORIZONTAL_SPEED_MULTIPLIER = 0.01
+HORIZONTAL_SPEED_MULTIPLIER = 0.0001
 
 INITIAL_SCREEN_WIDTH = 1024
 INITIAL_SCREEN_HEIGHT = int(1024 / 1.62) # Golden mean
 
-INITIAL_FUEL = 1000
+INITIAL_FUEL = 100
 
 MAX_HEIGHT = 10.
 
@@ -53,8 +53,10 @@ class PyManMain:
         self.screen = pygame.display.set_mode((self.width
                                                , self.height))
 
-        self.ground = [(100, 200, 30), (540, 640, 90), (700, 850, 40), (900,1000, 20)]
-
+#BEGINNER
+        #self.ground = [(100, 200, 30), (540, 640, 90), (700, 850, 40), (900,1000, 20)]
+        #self.ground = [(100, 200, 180), (540, 640, 0), (700, 850, 120), (900,1000, 100)]
+        self.ground =[(600, 600, 550), (800, 880, 20), (900, 900, 550)]
     def MainLoop(self):
         """Load All of our Sprites"""
         self.LoadSprites();
@@ -169,54 +171,52 @@ class Rocket(pygame.sprite.Sprite):
 
     def point_below_line(self,pointx, pointy, ax, ay, bx, by):
         slope = float(by - ay) / float(bx - ax)
-        intercept = ay - ax * slope 
+        intercept = ay - ax * slope
 
         if (pointx < ax or pointx > bx):
              #print ax, pointx, bx, "not in interval"
-   	     return False
-        ret = pointx * slope + intercept > pointy 
-	#print pointx, pointy, (pointx * slope + intercept), ret
+            return False
+        ret = pointx * slope + intercept > pointy
+        #print pointx, pointy, (pointx * slope + intercept), ret
         return ret
 
     def fall(self):
         #print self.rect.bottom
         altitude = INITIAL_SCREEN_HEIGHT - self.rect.bottom
-        
 
-        curr = (0, LH_ALTITUDE) 
+
+        curr = (0, LH_ALTITUDE)
         x1 = self.rect.left
         y1 = altitude
         x2 = self.rect.right
         y2 = altitude
 
-	#print x1, y1, x2, y2, self.ground
+    #print x1, y1, x2, y2, self.ground
 
 
-	#TODO: HANDLE CASE WHERE ROCKET IS HALF-ON A PLATFORM.
+    #TODO: HANDLE CASE WHERE ROCKET IS HALF-ON A PLATFORM.
 
         for t in self.ground:
                 if self.point_below_line(x1, y1 + GROUND_COLLISION_TOLERANCE, curr[0], curr[1], t[0], t[2]) \
                     or self.point_below_line(x2, y2 + GROUND_COLLISION_TOLERANCE, curr[0], curr[1], t[0], t[2]):
                         self.image = load_image('Crashed.png', -1)[0]
-			self.landed = True
+                        self.landed = True
                         return
-		if x1 > t[0] and x2 < t[1] \
-			and self.point_below_line(x1, y1, t[0], t[2], t[1], t[2]):
+                if x1 > t[0] and x2 < t[1] \
+                    and self.point_below_line(x1, y1, t[0], t[2], t[1], t[2]):
 
-            		if self.speed < 3:
-                		self.image.fill((0,200,0))
-                		self.landed = True
-            		else:
-                		self.image = load_image('Crashed.png', -1)[0]
-                		self.landed = True
-            		return
-
-
-		curr = (t[1], t[2])
+                    if self.speed < 3:
+                        self.image.fill((0,200,0))
+                        self.landed = True
+                    else:
+                        self.image = load_image('Crashed.png', -1)[0]
+                        self.landed = True
+                    return
+                curr = (t[1], t[2])
 
 
         # TODO: Handle final hill on right of screen.
-        
+
 
 
 
@@ -233,7 +233,7 @@ class Rocket(pygame.sprite.Sprite):
             self.xspeed = -self.xspeed
         if self.xpos >= INITIAL_SCREEN_WIDTH * self.height_ratio:
             print "boundary", self.xpos
-            self.xpos = (INITIAL_SCREEN_WIDTH ) * self.height_ratio 
+            self.xpos = (INITIAL_SCREEN_WIDTH ) * self.height_ratio
             self.xspeed = -self.xspeed
         self.speed += self.accel * seconds_elapsed
         self.xpos += self.xspeed
