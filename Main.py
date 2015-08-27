@@ -15,9 +15,12 @@ import time
 #pygame.mixer.music.load("data\music.mp3")
 #pygame.mixer.music.play()
 
+GROUND_COLLISION_TOLERANCE = 5
+
 ACCELERATION_DUE_TO_THRUST = -3.07
-ACCELERATION_DUE_TO_GRAVITY = 0.35
+ACCELERATION_DUE_TO_GRAVITY = 1.6
 INITIAL_VERTICAL_SPEED = 3
+INITIAL_HORIZONTAL_SPEED = 0.1
 HORIZONTAL_SPEED_MULTIPLIER = 0.01
 
 INITIAL_SCREEN_WIDTH = 1024
@@ -56,6 +59,12 @@ class PyManMain:
         """Load All of our Sprites"""
         self.LoadSprites();
         """This is the Main Loop of the Game"""
+
+        cyan_landing_value = 200
+        min_value_for_landing_cyan = 200
+        max_value_for_landing_cyan = 255
+        cyan_change = 10
+
         while 1:
             keys = pygame.key.get_pressed()
 
@@ -97,9 +106,16 @@ class PyManMain:
             # Start drawing line
             curr = (0, self.height - LH_ALTITUDE)
 
+
+            cyan_landing_value += cyan_change
+            if cyan_landing_value > max_value_for_landing_cyan \
+                or cyan_landing_value < min_value_for_landing_cyan:
+                cyan_change = - cyan_change
+                cyan_landing_value += cyan_change
             cyan = (0, 100, 100)
-            cyan2 = (0, 200, 200)
-            for t in self.ground:
+            cyan2 = (0, cyan_landing_value, cyan_landing_value)
+            
+	    for t in self.ground:
                 pygame.draw.line(self.screen, cyan, \
                     curr, (t[0], self.height - t[2]), 4)
                 pygame.draw.line(self.screen, cyan2, \
@@ -143,10 +159,10 @@ class Rocket(pygame.sprite.Sprite):
         self.height = MAX_HEIGHT
         self.time = time.time()
         self.speed = INITIAL_VERTICAL_SPEED
+	self.xspeed = INITIAL_HORIZONTAL_SPEED
         self.accel = ACCELERATION_DUE_TO_GRAVITY
         self.rotation = 0
         self.xaccel = 0
-        self.xspeed = 0
         self.ground = ground
         self.landed = False
         self.fuel = INITIAL_FUEL
@@ -179,8 +195,8 @@ class Rocket(pygame.sprite.Sprite):
 	#TODO: HANDLE CASE WHERE ROCKET IS HALF-ON A PLATFORM.
 
         for t in self.ground:
-                if self.point_below_line(x1, y1, curr[0], curr[1], t[0], t[2]) \
-                    or self.point_below_line(x2, y2, curr[0], curr[1], t[0], t[2]):
+                if self.point_below_line(x1, y1 + GROUND_COLLISION_TOLERANCE, curr[0], curr[1], t[0], t[2]) \
+                    or self.point_below_line(x2, y2 + GROUND_COLLISION_TOLERANCE, curr[0], curr[1], t[0], t[2]):
                         self.image = load_image('Crashed.png', -1)[0]
 			self.landed = True
                         return
@@ -191,7 +207,7 @@ class Rocket(pygame.sprite.Sprite):
                 		self.image.fill((0,200,0))
                 		self.landed = True
             		else:
-                		elf.image = load_image('Crashed.png', -1)[0]
+                		self.image = load_image('Crashed.png', -1)[0]
                 		self.landed = True
             		return
 
