@@ -18,7 +18,7 @@ import time
 ACCELERATION_DUE_TO_THRUST = -3.07
 ACCELERATION_DUE_TO_GRAVITY = 0.35
 INITIAL_VERTICAL_SPEED = 3
-HORIZONTAL_SPEED_MULTIPLIER = 0.0001
+HORIZONTAL_SPEED_MULTIPLIER = 0.01
 
 INITIAL_SCREEN_WIDTH = 1024
 INITIAL_SCREEN_HEIGHT = int(1024 / 1.62) # Golden mean
@@ -26,6 +26,9 @@ INITIAL_SCREEN_HEIGHT = int(1024 / 1.62) # Golden mean
 INITIAL_FUEL = 1000
 
 MAX_HEIGHT = 10.
+
+LH_ALTITUDE = 120
+RH_ALTITUDE = 90
 
 if not pygame.font: print 'Warning, fonts disabled'
 if not pygame.mixer: print 'Warning, sound disabled'
@@ -47,7 +50,7 @@ class PyManMain:
         self.screen = pygame.display.set_mode((self.width
                                                , self.height))
 
-        self.ground = self.height - 20
+        self.ground = [(100, 200, 30), (540, 640, 90), (700, 850, 40), (900,1000, 20)]
 
     def MainLoop(self):
         """Load All of our Sprites"""
@@ -57,10 +60,10 @@ class PyManMain:
             keys = pygame.key.get_pressed()
 
             if (keys[113]):
-                	sys.exit()
+                        sys.exit()
             if (keys[114] and self.rocket.landed):
-                	self.LoadSprites()
-                	continue
+                        self.LoadSprites()
+                        continue
             if (keys[K_UP] and self.rocket.fuel > 0):
                         self.rocket.fuel -= 1
                         if self.rocket.fuel < 0:
@@ -91,8 +94,18 @@ class PyManMain:
             COLOR = (25,120,120)
             self.screen.fill(COLOR)
             self.rocket_sprites.draw(self.screen)
-            pygame.draw.line(self.screen, (0, 100,100), \
-               (0, self.ground), (self.width, self.ground), 4)
+            # Start drawing line
+            curr = (0, self.height - LH_ALTITUDE)
+
+            cyan = (0, 100, 100)
+            cyan2 = (0, 200, 200)
+            for t in self.ground:
+                pygame.draw.line(self.screen, cyan, \
+                    curr, (t[0], self.height - t[2]), 4)
+                pygame.draw.line(self.screen, cyan2, \
+                    (t[0], self.height - t[2]), (t[1], self.height - t[2]), 4)
+                curr = (t[1], self.height - t[2])
+            pygame.draw.line(self.screen, cyan, curr, (self.width, self.height - RH_ALTITUDE))
 
             font = pygame.font.Font(None, 36)
             text = font.render("Fuel: " + str(self.rocket.fuel), 1, (0, 255, 128))
@@ -138,32 +151,74 @@ class Rocket(pygame.sprite.Sprite):
         self.landed = False
         self.fuel = INITIAL_FUEL
 
+    def point_below_line(self,pointx, pointy, ax, ay, bx, by):
+        slope = float(by - ay) / float(bx - ax)
+        intercept = ay - ax * slope 
+
+        if (pointx < ax or pointx > bx):
+             #print ax, pointx, bx, "not in interval"
+   	     return False
+        ret = pointx * slope + intercept > pointy 
+	#print pointx, pointy, (pointx * slope + intercept), ret
+        return ret
+
     def fall(self):
         #print self.rect.bottom
-        if self.rect.bottom > self.ground:
-            if self.speed < 3:
-                self.image.fill((0,200,0))
-                self.landed = True
-            else:
-                self.image.fill((200,0,0))
-                self.landed = True
-            return
+        altitude = INITIAL_SCREEN_HEIGHT - self.rect.bottom
+        
+
+        curr = (0, LH_ALTITUDE) 
+        x1 = self.rect.left
+        y1 = altitude
+        x2 = self.rect.right
+        y2 = altitude
+
+	#print x1, y1, x2, y2, self.ground
+
+
+	#TODO: HANDLE CASE WHERE ROCKET IS HALF-ON A PLATFORM.
+
+        for t in self.ground:
+                if self.point_below_line(x1, y1, curr[0], curr[1], t[0], t[2]) \
+                    or self.point_below_line(x2, y2, curr[0], curr[1], t[0], t[2]):
+                        self.image = load_image('Crashed.png', -1)[0]
+			self.landed = True
+                        return
+		if x1 > t[0] and x2 < t[1] \
+			and self.point_below_line(x1, y1, t[0], t[2], t[1], t[2]):
+
+            		if self.speed < 3:
+                		self.image.fill((0,200,0))
+                		self.landed = True
+            		else:
+                		elf.image = load_image('Crashed.png', -1)[0]
+                		self.landed = True
+            		return
+
+
+		curr = (t[1], t[2])
+
+
+        # TODO: Handle final hill on right of screen.
+        
+
+
 
         curr_time = time.time()
         seconds_elapsed = curr_time - self.time
         self.time = curr_time
         self.height -= self.speed * seconds_elapsed
         if self.height > MAX_HEIGHT:
-            self.height = MAX_HEIGHT -1
-            self.speed = 0
+            self.height = MAX_HEIGHT
+            self.speed = -self.speed
             self.accel = ACCELERATION_DUE_TO_GRAVITY
         if self.xpos <= 0:
-            self.xpos = 1
-            self.xspeed = 0
+            self.xpos = 0
+            self.xspeed = -self.xspeed
         if self.xpos >= INITIAL_SCREEN_WIDTH * self.height_ratio:
             print "boundary", self.xpos
-            self.xpos = (INITIAL_SCREEN_WIDTH ) * self.height_ratio - 1
-            self.xspeed = 0
+            self.xpos = (INITIAL_SCREEN_WIDTH ) * self.height_ratio 
+            self.xspeed = -self.xspeed
         self.speed += self.accel * seconds_elapsed
         self.xpos += self.xspeed
         #print "xpos", self.xpos
@@ -175,6 +230,7 @@ class Rocket(pygame.sprite.Sprite):
             self.image = load_image('rocketup.png', -1)[0]
         elif self.rotation == 90:
             self.image = load_image('rocketright.png', -1)[0]
+        # TODO: Remove INITIAL_SCREEN_HEIGHT
         self.rect.top = INITIAL_SCREEN_HEIGHT - self.height / self.height_ratio
         self.rect.left = self.xpos / self.height_ratio
         #print self.height, self.rect.bottom, self.height / self.height_ratio
